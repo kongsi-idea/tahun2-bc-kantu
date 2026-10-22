@@ -6,3 +6,4 @@ dist/
 .playwright-output/
 assets/src/
 .vercel
+design/thumbs/

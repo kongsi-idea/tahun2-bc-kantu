@@ -19,7 +19,7 @@
 
   /* ───────── 状态 ───────── */
   const fresh = () => ({
-    step: 0, req: 0, found: [], light: false,
+    step: 0, found: [], light: false,
     sel: {}, cur: 0,
     order: null, slots: [null, null, null, null, null], ok: [false, false, false, false, false],
     masked5: false, show6: false, checks: [false, false, false],
@@ -34,25 +34,33 @@
   /* ───────── 句子积木 ───────── */
   const blank = { k: 'b' };
   function sentence(fi) {
-    const s = S.sel, o = (v) => v ? { t: v, k: 'o' } : blank;
+    const s = S.sel, o = (v, h) => v ? { t: v, k: 'o', h } : { k: 'b', h };
     switch (fi) {
-      case 0: return [o(s.t), { t: '，我在' }, o(s.p), { t: '发现一个心愿瓶。' }];
-      case 1: return [{ t: '它是' }, o(s.shape), { t: '的，瓶口系着' }, o(s.ribbon), { t: '，里面装着' }, o(s.inside), { t: '。' }];
-      case 2: return [{ t: '我在纸条上写下' }, o(s.wish), { t: '，然后把纸条放进瓶里。' }];
+      case 0: return [o(s.t, '时间'), { t: '，我在' }, o(s.p, '地点'), { t: '发现一个心愿瓶。' }];
+      case 1: return [{ t: '它是' }, o(s.shape, '形状'), { t: '的，瓶口系着' }, o(s.ribbon, '丝带'), { t: '，里面装着' }, o(s.inside, '里面有什么'), { t: '。' }];
+      case 2: return [{ t: '我在纸条上写下' }, o(s.wish, '什么愿望'), { t: '，然后把纸条放进瓶里。' }];
       case 3: {
         const r = s.wish && s.reason != null ? D.REASONS[s.wish][s.reason] : null;
-        return [{ t: '因为', k: 'w' }, r ? { t: r[0], k: 'o' } : blank, { t: '，' }, { t: '所以', k: 'w' }, r ? { t: r[1], k: 'o' } : blank, { t: '。' }];
+        return [{ t: '因为', k: 'w' }, r ? { t: r[0], k: 'o', h: '为什么' } : { k: 'b', h: '为什么' }, { t: '，' }, { t: '所以', k: 'w' }, r ? { t: r[1], k: 'o', h: '想怎样' } : { k: 'b', h: '想怎样' }, { t: '。' }];
       }
-      default: return [{ t: '如果愿望实现了，我会' }, o(s.mood), { t: '，也会' }, o(s.act), { t: '。' }];
+      default: return [{ t: '如果愿望实现了，我会' }, o(s.mood, '心情'), { t: '，也会' }, o(s.act, '会做什么'), { t: '。' }];
     }
   }
   const complete = (segs) => !segs.some((x) => x.k === 'b');
   const fingerDone = (fi) => complete(sentence(fi));
   const allDone = () => [0, 1, 2, 3, 4].every(fingerDone);
   const text = (segs) => segs.map((x) => x.k === 'b' ? '' : x.t).join('');
-  function segsHTML(segs, mask) {
-    return segs.map((x) => {
-      if (x.k === 'b' || (mask && x.k === 'o')) return '<span class="blank"></span>';
+  function segsHTML(segs, mask, hint) {
+    const hs = hint || mask;
+    segs = segs.map((x) => Object.assign({}, x));
+    return segs.map((x, i) => {
+      if (x.k === 'b' || (mask && x.k === 'o')) {
+        if (!hs) return '<span class="blank"></span>';
+        let tail = '';
+        const nx = segs[i + 1];
+        if (nx && !nx.k && /^[，。]/.test(nx.t)) { tail = nx.t[0]; nx.t = nx.t.slice(1); }   // 空格和后面的标点不拆行
+        return `<span class="nb"><span class="blank hint"><em>（${x.h || ''}）</em></span>${tail}</span>`;
+      }
       if (x.k === 'w') return `<b class="kw">${x.t}</b>`;
       if (x.k === 'o') return `<span class="opt">${x.t}</span>`;
       return x.t;
@@ -89,38 +97,56 @@
         <div class="tag">看图写一个段落</div>
         <h2 class="s0-title">心愿瓶</h2>
         <div class="task">${D.TASK}</div>
-        <div class="reqs">${reqs.map((t, i) => `<button class="req c-${CN[[0, 1, 4][i]]} ${i < S.req ? 'on' : ''}" data-act="req" data-i="${i}"><i class="ph-fill ph-${i < S.req ? 'check-circle' : 'circle'}"></i>${t}</button>`).join('')}</div>
+        <div class="reqs">${reqs.map((t, i) => `<div class="req c-${CN[[0, 1, 4][i]]}"><i class="ph-fill ph-${['image', 'paragraph', 'text-aa'][i]}"></i>${t}</div>`).join('')}</div>
       </div>
       <div class="s0-r"><img src="assets/scene.jpg" alt=""></div>
     </div>`;
   }
 
   /* 第 1 步：手电筒 */
-  const L = { x: 500, y: 370, fly: null };
-  const R_LIGHT = 120;
+  const L = { x: 500, y: 370, fly: null, bounce: null, fx: [], fxn: 0 };
+  const W0 = D.SCENE.w, H0 = D.SCENE.h;
+  const pc = (v, t) => (v / t * 100).toFixed(2) + '%';
   function hotFound(w) { return S.found.includes(w); }
+  function center(h) { const r = h.r[0]; return [(r[0] + r[2]) / 2, (r[1] + r[3]) / 2]; }   // 原图像素
+  function nextHint() { return [...D.HOTSPOTS].sort((a, b) => a.pri - b.pri).find((h) => !hotFound(h.w)); }
+  // 临时效果（浮现的词、提示文字、脉动光环）：记开始时间，重画时接着播
+  function fxHTML() {
+    const now = Date.now();
+    L.fx = L.fx.filter((f) => now - f.start < f.dur);
+    return L.fx.map((f) => {
+      const st = `left:${f.pctx ? pc(f.x, W0) : f.x + 'px'};top:${f.pctx ? pc(f.y, H0) : f.y + 'px'};animation-delay:${-(now - f.start)}ms`;
+      return `<div class="${f.cls}" data-fx="${f.id}" style="${st}">${f.text || ''}</div>`;
+    }).join('');
+  }
+  function addFx(o) {
+    o.id = ++L.fxn; o.start = Date.now(); o.pctx = o.cls !== 's1-toast';
+    L.fx.push(o);
+    setTimeout(() => { L.fx = L.fx.filter((f) => f.id !== o.id); const n = document.querySelector(`[data-fx="${o.id}"]`); if (n) n.remove(); }, o.dur + 60);
+  }
   function r1() {
-    const W = D.SCENE.w, H = D.SCENE.h, pc = (v, t) => (v / t * 100).toFixed(2) + '%';
     let ov = '';
     D.HOTSPOTS.forEach((h, n) => {
       const show = S.light || DEBUG;
-      if (show) h.r.forEach((r) => { ov += `<div class="hot ${hotFound(h.w) ? 'got' : ''}" style="left:${pc(r[0], W)};top:${pc(r[1], H)};width:${pc(r[2] - r[0], W)};height:${pc(r[3] - r[1], H)}"></div>`; });
-      if (S.light) ov += `<div class="hlab" style="left:${pc(h.a[0], W)};top:${pc(h.a[1], H)}"><i>${n + 1}</i>${h.w}</div>`;
-      if (hotFound(h.w)) ov += `<div class="hchk" style="left:${pc(h.a[0], W)};top:${pc(h.a[1], H)}">${icon('check-circle')}</div>`;
+      if (show) h.r.forEach((r) => { ov += `<div class="hot ${hotFound(h.w) ? 'got' : ''}" style="left:${pc(r[0], W0)};top:${pc(r[1], H0)};width:${pc(r[2] - r[0], W0)};height:${pc(r[3] - r[1], H0)}"></div>`; });
+      if (S.light) ov += `<div class="hlab" style="left:${pc(h.a[0], W0)};top:${pc(h.a[1], H0)}"><i>${n + 1}</i>${h.w}</div>`;
+      if (hotFound(h.w)) ov += `<div class="hchk" style="left:${pc(h.a[0], W0)};top:${pc(h.a[1], H0)}">${icon('check-circle')}</div>`;
     });
-    const cards = S.found.map((w) => `<div class="wc c-${CN[D.HOTSPOTS.findIndex((h) => h.w === w) % 5]}" data-w="${w}">${w}</div>`).join('');
+    const cells = [];
+    for (let i = 0; i < 12; i++) cells.push(S.found[i] ? `<div class="wc c-${CN[i % 5]}" data-w="${S.found[i]}">${S.found[i]}</div>` : '<div class="wc qm">？</div>');
     const n = S.found.length;
     return `<div class="s1">
       <div class="s1-wrap ${S.light ? 'light' : ''}" id="s1wrap" style="--x:${L.x}px;--y:${L.y}px">
-        <img src="assets/scene.jpg" alt="">${ov}<div class="s1-mask"></div><div class="s1-ring"></div>
+        <img src="assets/scene.jpg" alt="">${ov}<div class="s1-mask"></div><div class="s1-ring"></div>${fxHTML()}
       </div>
       <aside class="s1-lib">
         <div class="lib-h"><span class="no">2</span><h1>看图找一找</h1></div>
         <h2>我们找到了</h2>
         <div class="lib-n">已找到 <b>${n}</b> / 12</div>
-        <div class="lib-grid">${cards || '<div class="lib-empty">用光圈照一照，点一点</div>'}</div>
+        <div class="lib-grid">${cells.join('')}</div>
         <div class="lib-btns">
           <button class="btn" data-act="light">${icon(S.light ? 'lightbulb-filament' : 'flashlight')}${S.light ? '关灯' : '开灯'}</button>
+          <button class="btn ghost" data-act="hint1">${icon('crosshair')}提示</button>
           <button class="btn ghost" data-act="redo1">${icon('arrow-counter-clockwise')}重来</button>
         </div>
       </aside>
@@ -129,24 +155,37 @@
   function placeSpot() {
     const w = $('#s1wrap'); if (w) { w.style.setProperty('--x', L.x + 'px'); w.style.setProperty('--y', L.y + 'px'); }
   }
+  // 重叠时：未找到的里面面积最小的；全都找过了才回报已找到的
   function hit(px, py) {
-    const W = D.SCENE.w / 1000;
-    const x = px * W, y = py * W;
-    let best = null;
+    const k = W0 / 1000, x = px * k, y = py * k;
+    const c = [];
     D.HOTSPOTS.forEach((h) => {
-      if (h.r.some((r) => x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3]))
-        if (!best || h.pri < best.pri) best = h;
+      let a = Infinity;
+      h.r.forEach((r) => { if (x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3]) a = Math.min(a, (r[2] - r[0]) * (r[3] - r[1])); });
+      if (a < Infinity) c.push({ h, a });
     });
-    return best;
+    if (!c.length) return null;
+    const un = c.filter((o) => !hotFound(o.h.w)), pool = un.length ? un : c;
+    pool.sort((p, q) => p.a - q.a || p.h.pri - q.h.pri);
+    return { h: pool[0].h, already: !un.length };
+  }
+  function toast(text) {
+    const R = 150, x = Math.max(200, Math.min(800, L.x));
+    let y = L.y + R + 12; if (y > 690) y = L.y - R - 64;
+    addFx({ cls: 's1-toast', text, x, y: Math.max(8, y), dur: 1200 });
   }
   function onS1Click(e, wrap) {
     const rc = wrap.getBoundingClientRect();
     const px = (e.clientX - rc.left) / rc.width * 1000, py = (e.clientY - rc.top) / rc.width * 1000;
-    const h = hit(px, py);
-    if (!h) return;
-    const sr = stage.getBoundingClientRect();
-    L.fly = { w: h.w, x: (e.clientX - sr.left) / scale, y: (e.clientY - sr.top) / scale };
-    if (!S.found.includes(h.w)) S.found.push(h.w);
+    L.x = px; L.y = py;
+    const r = hit(px, py);
+    if (!r) { toast('这里没有，换个地方照照'); return render(); }
+    const h = r.h;
+    if (r.already) { toast('找过了：' + h.w); L.bounce = h.w; return render(); }
+    S.found.push(h.w);
+    const c = center(h);
+    addFx({ cls: 's1-pop', text: h.w, x: c[0], y: c[1], dur: 1000 });
+    L.fly = { w: h.w, cx: c[0], cy: c[1] };
     render();
   }
 
@@ -255,7 +294,7 @@
     return ws;
   }
   function r6() {
-    const sk = [0, 1, 2, 3, 4].map((i) => `<div class="sk c-${CN[i]}"><span class="fn c-${CN[i]}">${i + 1}</span><div>${segsHTML(sentence(i).map((x) => x.k === 'o' ? { k: 'b' } : x))}</div></div>`).join('');
+    const sk = [0, 1, 2, 3, 4].map((i) => `<div class="sk c-${CN[i]}"><span class="fn c-${CN[i]}">${i + 1}</span><div>${segsHTML(sentence(i).map((x) => x.k === 'o' ? { k: 'b', h: x.h } : x), false, true)}</div></div>`).join('');
     const r = S.timer.remain;
     const ws = wordsBank();
     const p = paraFull();
@@ -298,17 +337,34 @@
     screens.innerHTML = `<section class="step st${i} ${enter ? 'enter' : ''}">${RENDER[i]()}</section>`;
     placeSpot();
     renderNav();
-    if (i === 1 && L.fly) {
-      const f = L.fly; L.fly = null;
-      const card = $(`.wc[data-w="${f.w}"]`);
-      if (card && !reduced) {
-        const sr = stage.getBoundingClientRect(), cr = card.getBoundingClientRect();
-        const dx = f.x - ((cr.left + cr.width / 2 - sr.left) / scale), dy = f.y - ((cr.top + cr.height / 2 - sr.top) / scale);
-        card.animate([{ transform: `translate(${dx}px,${dy}px) scale(.3)`, opacity: 0.2 }, { transform: 'translate(0,0) scale(1.12)', opacity: 1, offset: .75 }, { transform: 'none' }], { duration: 400, easing: 'cubic-bezier(.2,.8,.3,1)' });
+    if (i === 1) {
+      if (L.fly) {
+        const f = L.fly; L.fly = null;
+        const card = $(`.wc[data-w="${f.w}"]`), wrap = $('#s1wrap');
+        if (card && wrap && !reduced) {
+          const sr = stage.getBoundingClientRect(), cr = card.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+          const sx = (wr.left + f.cx / D.SCENE.w * wr.width - sr.left) / scale, sy = (wr.top + f.cy / D.SCENE.h * wr.height - sr.top) / scale;
+          const dx = sx - ((cr.left + cr.width / 2 - sr.left) / scale), dy = sy - ((cr.top + cr.height / 2 - sr.top) / scale);
+          card.animate([{ transform: `translate(${dx}px,${dy}px) scale(.3)`, opacity: 0 }, { transform: `translate(${dx}px,${dy}px) scale(.3)`, opacity: 0, offset: .64 }, { transform: `translate(${dx}px,${dy}px) scale(.5)`, opacity: 1, offset: .66 }, { transform: 'translate(0,0) scale(1.12)', opacity: 1, offset: .92 }, { transform: 'none' }], { duration: 1450, easing: 'cubic-bezier(.2,.8,.3,1)' });
+        }
+      }
+      if (L.bounce) {
+        const card = $(`.wc[data-w="${L.bounce}"]`); L.bounce = null;
+        if (card && !reduced) card.animate([{ transform: 'none' }, { transform: 'scale(1.28)', offset: .35 }, { transform: 'scale(.94)', offset: .65 }, { transform: 'none' }], { duration: 480 });
       }
     }
+    fitAll();
     clearTimeout(saveT); saveT = setTimeout(save, 60);
   }
+  // 句子放不下就把字号 44 -> 38 -> 34，不靠绝对定位叠放
+  function fitAll() {
+    const p3 = $('.p3');
+    if (p3) { const pat = $('.pat', p3); for (const z of [44, 38, 34]) { pat.style.fontSize = z + 'px'; if (p3.scrollHeight <= p3.clientHeight + 1) break; } }
+    const s2 = $('.s2-sent');
+    if (s2) { const t = $('.sent-big', s2); for (const z of [48, 40, 34]) { t.style.fontSize = z + 'px'; if (s2.scrollHeight <= s2.clientHeight + 1) break; } }
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
+
   function renderNav() {
     $('#nav').innerHTML = `<div class="dots">${D.STEPS.map((n, i) => `<button class="dot ${i === S.step ? 'on' : ''} ${i < S.step ? 'past' : ''}" data-act="go" data-i="${i}"><i>${i + 1}</i><span>${n}</span></button>`).join('')}</div>
       <div class="nav-r"><button class="nbtn" data-act="again" title="全部重来">${icon('arrow-counter-clockwise')}</button><button class="nbtn q" data-act="hint" title="提示">${icon('question')}</button></div>`;
@@ -369,7 +425,7 @@
     again: askAgain,
     mno: () => { $('#modal').hidden = true; },
     myes: () => { tstop(); const sound = S.sound; S = fresh(); S.sound = sound; Object.keys(lastN).forEach((k) => delete lastN[k]); wrong = new Set(); $('#modal').hidden = true; render(); },
-    req: (el) => { const i = +el.dataset.i; if (i === S.req) S.req++; else if (i === S.req - 1) S.req--; render(); },
+    hint1: () => { const h = nextHint(); if (h) { const c = center(h); addFx({ cls: 's1-pulse', x: c[0], y: c[1], dur: 2000 }); render(); } },
     light: () => { S.light = !S.light; render(); },
     redo1: () => { S.found = []; render(); },
     pick: (el) => { changeSel(el.dataset.slot, el.dataset.v); render(); },

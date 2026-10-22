@@ -1,7 +1,7 @@
 # 心愿瓶看图写话 · 交接
 
 ## ⏯️ 目前做到哪
-v1.3 已上线（2026-10-22，454498e）：https://tahun2-bc-kantu.vercel.app ，GitHub kongsi-idea/tahun2-bc-kantu，push 到 main 自动部署。**10-22 已上 Hub**（kongsi-idea 93e6ac9，`npm run check` 全过）：封面 draw B 构图（design/cover-final.png，Hub 裁 4:3、og.jpg 1200×900）；DSKP 二年级华文 3.2 写话（dskp-index 新增，topic「写话」）；开场 splash 仍用老师 PPT 第 1 页（刻意保留）。
+v1.3 已上线（2026-10-22，454498e）：https://tahun2-bc-kantu.vercel.app ，GitHub kongsi-idea/tahun2-bc-kantu，push 到 main 自动部署。**10-22 已上 Hub**（kongsi-idea 93e6ac9，`npm run check` 全过）：封面 draw B 构图（design/cover-final.png，Hub 裁 4:3、og.jpg 1200×900）；DSKP 二年级华文 3.2 写话（dskp-index 新增，topic「写话」）；开场 splash 仍用老师 PPT 第 1 页（刻意保留）。**Hub 署名「李老师」**（10-22 老师说这个工具是李老师的；PPT 也是李老师的课）。
 用途：老师 10-23（周五）Google Meet 分享屏幕上二年级看图写话，取代他的 PPT（~/Downloads/看图写话.pptx.pdf）。只有老师操作，无语音、无学生引导（老师自己讲课）。规格见 SPEC.md（原 8 步，现 9 步，见下）。
 
 ## 🚦 目前状态

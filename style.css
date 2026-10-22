@@ -5,11 +5,11 @@
   --p:#F4A28C; --p-d:#CC6A50; --p-l:#FDE6DE;
   --y:#FFE08A; --y-d:#C99A10; --y-l:#FFF3C6;
   --l:#B9A3E3; --l-d:#7C5FBC; --l-l:#EDE5FA;
-  --font:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; --num:'Baloo 2','Noto Sans SC',sans-serif;
+  --font:'LXGW WenKai GB Medium','Kaiti SC','STKaiti','KaiTi','楷体','Noto Sans SC',serif; --num:'Baloo 2','Noto Sans SC',sans-serif;
   --shadow:0 6px 0 rgba(31,47,107,.08),0 14px 28px rgba(31,47,107,.10);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#EADFC2;font-family:var(--font);color:var(--ink);font-weight:500;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#EADFC2;font-family:var(--font);font-synthesis:none;color:var(--ink);font-weight:500;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 #stage{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:0 0;background:var(--paper);overflow:hidden;box-shadow:0 0 60px rgba(31,47,107,.18);
   background-image:radial-gradient(circle at 12% 8%,rgba(123,198,126,.10),transparent 34%),radial-gradient(circle at 92% 92%,rgba(185,163,227,.12),transparent 36%),radial-gradient(circle at 88% 6%,rgba(244,162,140,.10),transparent 30%)}

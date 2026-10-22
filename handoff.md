@@ -1,7 +1,8 @@
 # 心愿瓶看图写话 · 交接
 
 ## ⏯️ 目前做到哪
-刚开工：方案待老师确认（教学目标／学生困难假设／核心玩法）。
+v1.0 已上线（2026-10-22）：https://tahun2-bc-kantu.vercel.app ，GitHub kongsi-idea/tahun2-bc-kantu，push 到 main 自动部署。**未上 Hub**。
+用途：老师 10-23（周五）Google Meet 分享屏幕上二年级看图写话，取代他的 PPT（~/Downloads/看图写话.pptx.pdf）。只有老师操作，无语音、无学生引导（老师自己讲课）。规格见 SPEC.md。
 
 ## 🚦 目前状态
 - 2026-10-22：index.html／style.css／app.js／data.js 已实作并本机验收（8 步、三种视窗、拖拽、计时、localStorage）；未部署、未 git init、未上 Hub。截图在 playwright-to-delete/tahun2-bc-kantu/
@@ -9,7 +10,9 @@
 - DSKP 对照：待补（只写本机官方 PDF 核对过的代码）
 
 ## ➡️ 下一步
-1. 老师确认方案后动工。
+1. 10-23 课后问老师实际使用情况（手电筒在 Meet 里看不看得清、五指选项难度、13 分钟够不够），改版。
+2. 上 Hub：draw 生成封面（先 1 张 low 三构图对照）、og.jpg、DSKP 对照（3.2 写话，查 kongsi-idea/docs/dskp/tahun2/bahasa-cina.md）、4 张缩图、modes=全班投影。
+3. 图片来自老师 PPT（assets/src/ 原图不进 git、不部署）。
 
 ## 📋 上架前要备齐（Hub 登记在 kongsi-idea/data/tools.js，规则见 teaching-tools/agents.md）
 - [ ] `standards` 能解析出主题（主题标在 dskp-index.js 节点上，同一内容跨年级同一个词；综合复习等例外才用 `topicOverride`）
@@ -23,4 +26,4 @@
 - 本机测试：`python3 -m http.server 8791 --bind 127.0.0.1`，开 http://127.0.0.1:8791（8765 常被 Hub 本机服务占用）
 
 ## 🕐 最后更新
-2026-10-22
+2026-10-22｜Claude Code (Opus 5.5)｜Git：✅ 已推

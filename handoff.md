@@ -28,7 +28,8 @@ v1.3 已上线（2026-10-22，454498e）：https://tahun2-bc-kantu.vercel.app �
 - [ ] 要老师后台：data/teacher/{slug}.js ＋ TEACHER_TOOLS（不再复制 *-admin.html）
 
 ## ⚠️ 注意事项
+- 关键决定（因为不放句首、规范楷体、刻意不做语音／引导、署名李老师）在本目录 `agents.md`，改内容前先读。
 - 本机测试：`python3 -m http.server 8791 --bind 127.0.0.1`，开 http://127.0.0.1:8791（8765 常被 Hub 本机服务占用）
 
 ## 🕐 最后更新
-2026-10-22｜Claude Code (Opus 5.5)｜Git：✅ 已推
+2026-10-22 20:30｜Claude Code (Opus 5.5) @ mr007s-Macbook-Air.local｜Git：✅ 已推（收工）

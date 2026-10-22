@@ -210,6 +210,10 @@ mark{background:var(--y);border-radius:8px;padding:0 6px;color:var(--ink);font-w
 .sks{position:absolute;left:40px;top:100px;width:880px;display:flex;flex-direction:column;gap:12px}
 .sk{display:flex;align-items:center;gap:14px;background:var(--cl);border:4px solid var(--c);border-radius:26px;padding:0 20px 0 12px;height:112px;font-size:35px;line-height:1.4;font-weight:700}
 .sk>div{flex:1}
+.sks .s6-para{background:#fff;border:4px solid var(--ink2);border-radius:26px;padding:22px 34px;height:604px;font-size:38px;font-weight:700;line-height:96px;text-indent:2em;overflow:hidden;
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 95px,#DCD6C6 95px,#DCD6C6 96px);background-origin:content-box}
+.s6-para .blank.hint{line-height:1.25;text-indent:0}
+.bank .bank-w .wc.plain{font-size:36px;padding:2px 16px;background:#fff;border:3px solid #CFCAB9;color:var(--ink);box-shadow:none}
 .s6-r{position:absolute;left:960px;top:100px;width:600px;height:608px;display:flex;flex-direction:column;gap:14px}
 .clock{position:relative;background:#fff;border-radius:30px;border:4px solid var(--ink);padding:10px 14px 16px;text-align:center;box-shadow:var(--shadow)}
 .tnum{font:800 124px/1.05 var(--num);letter-spacing:.02em}

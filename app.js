@@ -294,7 +294,7 @@
     return ws;
   }
   function r6() {
-    const sk = [0, 1, 2, 3, 4].map((i) => `<div class="sk c-${CN[i]}"><span class="fn c-${CN[i]}">${i + 1}</span><div>${segsHTML(sentence(i).map((x) => x.k === 'o' ? { k: 'b', h: x.h } : x), false, true)}</div></div>`).join('');
+    const sk = `<div class="s6-para">${[0, 1, 2, 3, 4].map((i) => `<span class="s6-sen">${segsHTML(sentence(i).map((x) => x.k === 'o' ? { k: 'b', h: x.h } : x), false, true)}</span>`).join('')}</div>`;
     const r = S.timer.remain;
     const ws = wordsBank();
     const p = paraFull();
@@ -308,7 +308,7 @@
           <button class="btn sm ghost" data-act="tinc">${icon('plus')}1 分</button>
           <button class="btn sm ghost" data-act="treset">${icon('arrow-counter-clockwise')}重设</button>
           <button class="btn sm ghost sq" data-act="snd" title="提示音">${icon(S.sound ? 'speaker-high' : 'speaker-slash')}</button></div></div>
-        <div class="bank"><h3>词语库</h3><div class="bank-w ${ws.length > 10 ? 'tight' : ''}">${ws.length ? ws.map((w, i) => `<span class="wc c-${CN[i % 5]}">${w}</span>`).join('') : '<span class="lib-empty">第 1、2 步找到的词会在这里</span>'}</div></div>
+        <div class="bank"><h3>词语库</h3><div class="bank-w ${ws.length > 10 ? 'tight' : ''}">${ws.length ? ws.map((w) => `<span class="wc plain">${w}</span>`).join('') : '<span class="lib-empty">第 1、2 步找到的词会在这里</span>'}</div></div>
       </div>
       <div class="tips"><span class="c-g">抄句型，换上你的词</span><span class="c-b">用句型，自己写</span><span class="c-p">多写一点心愿瓶的样子</span></div>
       ${S.show6 ? `<div class="over" data-act="show6"><div class="over-in"><div class="over-t">我们的段落${p.model ? '（范文）' : ''}</div><div class="para big">${paraHTML(p.items)}</div></div></div>` : ''}

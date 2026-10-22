@@ -41,7 +41,7 @@
       case 2: return [{ t: '我在纸条上写下' }, o(s.wish, '什么愿望'), { t: '，然后把纸条放进瓶里。' }];
       case 3: {
         const r = s.wish && s.reason != null ? D.REASONS[s.wish][s.reason] : null;
-        return [{ t: '因为', k: 'w' }, r ? { t: r[0], k: 'o', h: '为什么' } : { k: 'b', h: '为什么' }, { t: '，' }, { t: '所以', k: 'w' }, r ? { t: r[1], k: 'o', h: '想怎样' } : { k: 'b', h: '想怎样' }, { t: '。' }];
+        return [{ t: '我' }, r ? { t: r[1], k: 'o', h: '想怎样' } : { k: 'b', h: '想怎样' }, { t: '，' }, { t: '因为', k: 'w' }, r ? { t: r[0], k: 'o', h: '为什么' } : { k: 'b', h: '为什么' }, { t: '。' }];
       }
       default: return [{ t: '如果愿望实现了，我会' }, o(s.mood, '心情'), { t: '，也会' }, o(s.act, '会做什么'), { t: '。' }];
     }
@@ -53,13 +53,19 @@
   function segsHTML(segs, mask, hint) {
     const hs = hint || mask;
     segs = segs.map((x) => Object.assign({}, x));
+    if (hs) segs.forEach((x, i) => {   // 空格前面的两个字跟空格绑在一起，空格不会单独落到行首
+      const pv = segs[i - 1];
+      if (!(x.k === 'b' || (mask && x.k === 'o')) || !pv) return;
+      if (!pv.k && pv.t.length > 2) { x.lead = pv.t.slice(-2); pv.t = pv.t.slice(0, -2); }
+      else if (pv.k === 'w' || (!pv.k && pv.t)) { x.lead = pv.k === 'w' ? `<b class="kw">${pv.t}</b>` : pv.t; pv.t = ''; pv.k = undefined; }
+    });
     return segs.map((x, i) => {
       if (x.k === 'b' || (mask && x.k === 'o')) {
         if (!hs) return '<span class="blank"></span>';
         let tail = '';
         const nx = segs[i + 1];
         if (nx && !nx.k && /^[，。]/.test(nx.t)) { tail = nx.t[0]; nx.t = nx.t.slice(1); }   // 空格和后面的标点不拆行
-        return `<span class="nb"><span class="blank hint"><em>（${x.h || ''}）</em></span>${tail}</span>`;
+        return `<span class="nb">${x.lead || ''}<span class="blank hint"><em>（${x.h || ''}）</em></span>${tail}</span>`;
       }
       if (x.k === 'w') return `<b class="kw">${x.t}</b>`;
       if (x.k === 'o') return `<span class="opt">${x.t}</span>`;
@@ -218,7 +224,7 @@
     if (fi === 2) body = g('愿望', chips('wish', D.WISHES, 'c-p'), 'p');
     if (fi === 3) {
       if (!S.sel.wish) body = `<div class="need">${icon('arrow-fat-left')}先选愿望</div>`;
-      else body = D.REASONS[S.sel.wish].map((r, i) => `<button class="chip c-y long ${S.sel.reason === i ? 'on' : ''}" data-act="pick" data-slot="reason" data-v="${i}">因为${r[0]}，所以${r[1]}。</button>`).join('');
+      else body = D.REASONS[S.sel.wish].map((r, i) => `<button class="chip c-y long ${S.sel.reason === i ? 'on' : ''}" data-act="pick" data-slot="reason" data-v="${i}">我${r[1]}，因为${r[0]}。</button>`).join('');
     }
     if (fi === 4) body = g('心情', chips('mood', D.MOOD, 'c-l'), 'l') + g('行动', chips('act', actsFor(), 'c-l'), 'l');
     return `<div class="q c-${CN[fi]}"><span>${fi + 1}</span>${f.q}</div>
@@ -262,7 +268,7 @@
     if (!S.order) shuffleOrder();
     const btns = `<button class="btn sm" data-act="check4">${icon('check-fat')}检查</button><button class="btn sm ghost" data-act="shuffle4">${icon('shuffle')}重新打乱</button>`;
     if (solved4()) {
-      const html = D.MODEL.map((s, i) => `<span class="sent c-${CN[i]}">${s.replace(/(然后|因为|所以|如果)/g, '<mark>$1</mark>')}</span>`).join('');
+      const html = D.MODEL.map((s, i) => `<span class="sent c-${CN[i]}">${s.replace(/(然后|因为|如果)/g, '<mark>$1</mark>')}</span>`).join('');
       return `${head(4, btns)}<div class="s4 win"><div class="para big"><span class="indent"></span>${html}</div><div class="win-msg">${icon('sparkle')}用这些词，句子就连起来了。</div></div>`;
     }
     const placed = new Set(S.slots.filter((v) => v != null));

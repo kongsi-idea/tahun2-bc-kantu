@@ -1,7 +1,7 @@
 # 心愿瓶看图写话 · 交接
 
 ## ⏯️ 目前做到哪
-v1.3 已上线（2026-10-22，454498e）：https://tahun2-bc-kantu.vercel.app ，GitHub kongsi-idea/tahun2-bc-kantu，push 到 main 自动部署。**未上 Hub**。
+v1.3 已上线（2026-10-22，454498e）：https://tahun2-bc-kantu.vercel.app ，GitHub kongsi-idea/tahun2-bc-kantu，push 到 main 自动部署。**10-22 已上 Hub**（kongsi-idea 93e6ac9，`npm run check` 全过）：封面 draw B 构图（design/cover-final.png，Hub 裁 4:3、og.jpg 1200×900）；DSKP 二年级华文 3.2 写话（dskp-index 新增，topic「写话」）；开场 splash 仍用老师 PPT 第 1 页（刻意保留）。
 用途：老师 10-23（周五）Google Meet 分享屏幕上二年级看图写话，取代他的 PPT（~/Downloads/看图写话.pptx.pdf）。只有老师操作，无语音、无学生引导（老师自己讲课）。规格见 SPEC.md（原 8 步，现 9 步，见下）。
 
 ## 🚦 目前状态
@@ -16,7 +16,7 @@ v1.3 已上线（2026-10-22，454498e）：https://tahun2-bc-kantu.vercel.app �
 1. 10-23 课后问老师实际使用情况（手电筒在 Meet 里看不看得清、五指选项难度、13 分钟够不够），改版。
 2. 学生作业照片 → essay-markup 批改＋整理全班最常见 3 个问题。
 3. 候选：词卡点开放大成田字格；第 4 步「问题变句子」高亮；改成可换图／题的看图写话模板（每周换内容、支架逐周减少）。
-4. 上 Hub：draw 生成封面（先 1 张 low 三构图对照）、og.jpg、DSKP 对照（3.2 写话，查 kongsi-idea/docs/dskp/tahun2/bahasa-cina.md）、4 张缩图、modes=全班投影。
+4. 改版时照 agents.md「改版同步五步」同步 Hub（version／changelog／缩图）。
 5. 图片来自老师 PPT（assets/src/ 原图不进 git、不部署）。
 
 ## 📋 上架前要备齐（Hub 登记在 kongsi-idea/data/tools.js，规则见 teaching-tools/agents.md）

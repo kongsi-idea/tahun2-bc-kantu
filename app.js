@@ -22,11 +22,11 @@
     step: 0, found: [], light: false,
     sel: {}, cur: 0,
     order: null, slots: [null, null, null, null, null], ok: [false, false, false, false, false],
-    masked5: false, show6: false, checks: [false, false, false],
+    masked5: false, show6: false, fw: { tab: 0, marks: [false, false, false, false, false], conn: false }, ver: 2, checks: [false, false, false],
     timer: { remain: 780 }, sound: true
   });
   let S = fresh();
-  try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (e) { }
+  try { const raw = localStorage.getItem(KEY); if (raw) { const o = JSON.parse(raw); if (!o.ver && o.step >= 7) o.step += 1; S = Object.assign(fresh(), o); } } catch (e) { }
   let saveT = 0;
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
   const cnt = (t) => (t.match(/[一-鿿]/g) || []).length;
@@ -92,7 +92,7 @@
   }
 
   /* ───────── 各步画面 ───────── */
-  const head = (i, extra = '') => `<header class="hd"><div class="no">${i + 1}</div><h1>${D.STEPS[i]}</h1><div class="hd-r">${extra}</div></header>`;
+  const head = (i, extra = '', title) => `<header class="hd"><div class="no">${i + 1}</div><h1>${title || D.STEPS[i]}</h1><div class="hd-r">${extra}</div></header>`;
   const icon = (n) => `<i class="ph-fill ph-${n}"></i>`;
 
   function r0() {
@@ -322,17 +322,44 @@
   }
 
   /* 第 7 步 */
-  function r7() {
+  function r8() {
     const items = [
       ['五根手指都写到了吗？', '<div class="five">' + CN.map((c, i) => `<span class="fn c-${c}">${i + 1}</span>`).join('') + '</div>'],
       ['每一句都有标点吗？', '<div class="pun">，。</div>'],
       ['数一数，够 40 个字吗？', '<div class="pun">40<small>字</small></div>']
     ];
-    return `${head(7)}<div class="s7">${items.map((it, i) => `<button class="chk ${S.checks[i] ? 'on' : ''}" data-act="chk" data-i="${i}"><span class="box">${icon('check-fat')}</span><span class="ct">${it[0]}</span>${it[1]}</button>`).join('')}
+    return `${head(8)}<div class="s7">${items.map((it, i) => `<button class="chk ${S.checks[i] ? 'on' : ''}" data-act="chk" data-i="${i}"><span class="box">${icon('check-fat')}</span><span class="ct">${it[0]}</span>${it[1]}</button>`).join('')}
       <div class="last">把作业本举到镜头前。</div></div>`;
   }
 
-  const RENDER = [r0, r1, r2, r3, r4, r5, r6, r7];
+  /* 第 8 步：看范文 */
+  function fwTabs() {
+    const t = D.FANWEN.map((f) => ({ name: f.name, note: f.note }));
+    if (allDone()) t.push({ name: '我们的段落' });
+    return t;
+  }
+  function fwSents() {
+    const t = S.fw.tab;
+    if (t < D.FANWEN.length) return D.FANWEN[t].sents;
+    return allDone() ? [0, 1, 2, 3, 4].map((i) => text(sentence(i))) : D.FANWEN[0].sents;
+  }
+  function r7() {
+    const tabs = fwTabs();
+    if (S.fw.tab >= tabs.length) S.fw.tab = 0;
+    const sents = fwSents(), all = sents.join('');
+    const conn = (t) => S.fw.conn ? t.replace(/(然后|因为|如果)/g, '<mark>$1</mark>') : t;
+    const body = sents.map((t, i) => { const on = S.fw.marks[i]; return `<span class="fws ${on ? 'on c-' + CN[i] : ''}">${on ? `<sup class="pdot c-${CN[i]}">${i + 1}</sup>` : ''}${conn(t)}</span>`; }).join('');
+    const extra = `<button class="btn sm" data-act="fwall">${icon('palette')}全部标出</button><button class="btn sm ghost" data-act="fwclear">${icon('eraser')}清除</button><button class="switch ${S.fw.conn ? 'on' : ''}" data-act="fwconn"><span class="knob"></span>连接词</button>`;
+    return `${head(7, extra, '对一对：看范文')}
+    <div class="fw">
+      <div class="fw-tabs">${tabs.map((t, i) => `<button class="fw-tab ${i === S.fw.tab ? 'on' : ''}" data-act="fwtab" data-i="${i}">${t.name}</button>${t.note ? `<span class="fw-note">${t.note}</span>` : ''}`).join('')}</div>
+      <div class="fw-card"><span class="indent"></span>${body}</div>
+      <div class="fw-fing">${D.FINGERS.map((f, i) => `<button class="fwb c-${CN[i]} ${S.fw.marks[i] ? 'on' : ''}" data-act="fwm" data-i="${i}"><span class="fn">${i + 1}</span>${f.label}</button>`).join('')}</div>
+      ${barHTML(cnt(all), 'fw')}
+    </div>`;
+  }
+
+  const RENDER = [r0, r1, r2, r3, r4, r5, r6, r7, r8];
 
   /* ───────── 渲染 ───────── */
   const screens = $('#screens');
@@ -376,7 +403,7 @@
       <div class="nav-r"><button class="nbtn" data-act="again" title="全部重来">${icon('arrow-counter-clockwise')}</button><button class="nbtn q" data-act="hint" title="提示">${icon('question')}</button></div>`;
   }
   function go(i) {
-    i = Math.max(0, Math.min(7, i));
+    i = Math.max(0, Math.min(8, i));
     if (i === S.step) return;
     S.step = i; hideHint(); render();
   }
@@ -457,6 +484,11 @@
     tinc: () => adj(60), tdec: () => adj(-60),
     treset: () => { tstop(); S.timer.remain = 780; $('#timesup').hidden = true; render(); },
     snd: () => { S.sound = !S.sound; render(); },
+    fwtab: (el) => { S.fw.tab = +el.dataset.i; S.fw.marks = [false, false, false, false, false]; render(); },
+    fwm: (el) => { const i = +el.dataset.i; S.fw.marks[i] = !S.fw.marks[i]; render(); },
+    fwall: () => { S.fw.marks = [true, true, true, true, true]; render(); },
+    fwclear: () => { S.fw.marks = [false, false, false, false, false]; render(); },
+    fwconn: () => { S.fw.conn = !S.fw.conn; render(); },
     chk: (el) => { const i = +el.dataset.i; S.checks[i] = !S.checks[i]; render(); }
   };
   function adj(d) {
